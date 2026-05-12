@@ -586,6 +586,7 @@ def run_training_experiment(
             global_step_start=global_step,
             grad_log_steps=0,
         )
+        global_step += len(val_loader)
 
         metrics = {
             "epoch": epoch,
