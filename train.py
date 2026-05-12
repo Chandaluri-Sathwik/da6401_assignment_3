@@ -435,10 +435,10 @@ def run_training_experiment(
     config = {
         "batch_size": 64,
         "num_epochs": 10,
-        "d_model": 256,
-        "N": 3,
+        "d_model": 512,
+        "N": 4,
         "num_heads": 8,
-        "d_ff": 1024,
+        "d_ff": 2048,
         "dropout": 0.1,
         "warmup_steps": 4000,
         "min_freq": 2,
