@@ -434,7 +434,7 @@ def run_training_experiment(
 
     config = {
         "batch_size": 64,
-        "num_epochs": 10,
+        "num_epochs": 50,
         "d_model": 512,
         "N": 4,
         "num_heads": 8,
