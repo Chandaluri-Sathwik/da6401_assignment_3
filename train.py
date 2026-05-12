@@ -384,6 +384,12 @@ def save_checkpoint(
             "optimizer_state_dict": optimizer.state_dict() if optimizer is not None else None,
             "scheduler_state_dict": scheduler.state_dict() if scheduler is not None else None,
             "model_config": getattr(model, "model_config", None),
+            "src_vocab": getattr(model, "src_vocab", None),
+            "tgt_vocab": getattr(model, "tgt_vocab", None),
+            "pad_idx": PAD_IDX,
+            "sos_idx": SOS_IDX,
+            "eos_idx": EOS_IDX,
+            "max_decode_len": getattr(model, "max_decode_len", 100),
         },
         path,
     )
@@ -398,7 +404,10 @@ def load_checkpoint(
     """
     Restore model and optionally optimizer/scheduler state.
     """
-    checkpoint = torch.load(path, map_location="cpu")
+    try:
+        checkpoint = torch.load(path, map_location="cpu", weights_only=False)
+    except TypeError:
+        checkpoint = torch.load(path, map_location="cpu")
     model.load_state_dict(checkpoint["model_state_dict"])
 
     if optimizer is not None and checkpoint.get("optimizer_state_dict") is not None:
@@ -513,6 +522,13 @@ def run_training_experiment(
         use_attention_scaling=config["use_attention_scaling"],
         positional_encoding_type=config["positional_encoding_type"],
     ).to(device)
+    model.src_vocab = train_data.src_vocab
+    model.tgt_vocab = train_data.tgt_vocab
+    model.src_tokenizer = train_data.src_tokenizer
+    model.pad_idx = PAD_IDX
+    model.sos_idx = SOS_IDX
+    model.eos_idx = EOS_IDX
+    model.max_decode_len = config["max_len"]
 
     base_lr = 1.0 if config["use_noam"] else config["fixed_lr"]
     optimizer = torch.optim.Adam(
