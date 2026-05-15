@@ -483,7 +483,7 @@ def run_training_experiment(
         "max_len": 100,
         "checkpoint_path": "checkpoint.pt",
         "checkpoint_url": None,
-        "checkpoint_fileid": "1QoafVbOt5k2_el5YXA4FTfNj2Lk6i9m5",
+        "checkpoint_fileid": "1Q2yHrVGIu0hzznmk4ATf1O8gsNp2rUZM",
         "use_wandb": True,
         "use_noam": True,
         "fixed_lr": 1e-4,

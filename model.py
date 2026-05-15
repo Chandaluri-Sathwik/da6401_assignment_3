@@ -27,7 +27,7 @@ except ImportError:  # pragma: no cover - spacy is in requirements for the assig
 
 # Put your public Google Drive file id here before Gradescope submission, or set
 # environment variable A3_CHECKPOINT_GDRIVE_ID. Do not submit the checkpoint file.
-CHECKPOINT_GDRIVE_ID = "1QoafVbOt5k2_el5YXA4FTfNj2Lk6i9m5"
+CHECKPOINT_GDRIVE_ID = "1Q2yHrVGIu0hzznmk4ATf1O8gsNp2rUZM"
 DEFAULT_CHECKPOINT_PATH = "checkpoint.pt"
 
 def _torch_load(path: str):
