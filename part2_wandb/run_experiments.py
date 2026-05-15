@@ -21,7 +21,7 @@ from train import run_training_experiment
 BASE_CONFIG = {
     "use_wandb": True,
     "batch_size": 64,
-    "num_epochs": 10,
+    "num_epochs": 20,
     "d_model": 512,
     "N": 4,
     "num_heads": 8,
@@ -30,6 +30,9 @@ BASE_CONFIG = {
     "warmup_steps": 4000,
     "min_freq": 2,
     "max_len": 100,
+    "checkpoint_path": "checkpoint.pt",
+    "checkpoint_url": None,
+    "checkpoint_fileid": None,
     "log_every": 100,
     "grad_log_steps": 1000,
 }
