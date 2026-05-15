@@ -17,7 +17,45 @@ from tqdm import tqdm
 
 from dataset import EOS_IDX, PAD_IDX, SOS_IDX, Multi30kDataset, make_collate_fn
 from lr_scheduler import NoamScheduler
-from model import Transformer, make_src_mask, make_tgt_mask
+from model import Transformer, make_src_mask, make_tgt_mask, gdown
+
+
+def _download_checkpoint(checkpoint_url: Optional[str], checkpoint_fileid: Optional[str], path: str) -> None:
+    """
+    Download a checkpoint file if it does not already exist.
+
+    Priority:
+    1. `checkpoint_fileid` via gdown
+    2. `checkpoint_url` via gdown
+    """
+    if os.path.exists(path):
+        return
+
+    directory = os.path.dirname(path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+
+    if gdown is None:
+        raise RuntimeError(
+            "gdown is required to download checkpoints but is not installed. "
+            "Install it with `pip install gdown` or provide the checkpoint locally."
+        )
+
+    try:
+        if checkpoint_fileid is not None:
+            print(f"Downloading checkpoint from Google Drive file id {checkpoint_fileid} to {path}...")
+            gdown.download(id=checkpoint_fileid, output=path, quiet=False)
+        elif checkpoint_url is not None:
+            print(f"Downloading checkpoint from {checkpoint_url} to {path} with gdown...")
+            gdown.download(checkpoint_url, path, quiet=False)
+        else:
+            raise RuntimeError(
+                "No checkpoint URL or file ID provided for download."
+            )
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to download checkpoint to {path} using gdown"
+        ) from exc
 
 
 class LabelSmoothingLoss(nn.Module):
@@ -434,7 +472,7 @@ def run_training_experiment(
 
     config = {
         "batch_size": 64,
-        "num_epochs": 50,
+        "num_epochs": 100,
         "d_model": 512,
         "N": 4,
         "num_heads": 8,
@@ -444,6 +482,8 @@ def run_training_experiment(
         "min_freq": 2,
         "max_len": 100,
         "checkpoint_path": "checkpoint.pt",
+        "checkpoint_url": None,
+        "checkpoint_fileid": "1QoafVbOt5k2_el5YXA4FTfNj2Lk6i9m5",
         "use_wandb": True,
         "use_noam": True,
         "fixed_lr": 1e-4,
@@ -552,9 +592,31 @@ def run_training_experiment(
         smoothing=config["label_smoothing"],
     )
 
-    best_val_loss = float("inf")
+    start_epoch = 0
     global_step = 0
-    for epoch in range(config["num_epochs"]):
+    if (
+        config["checkpoint_fileid"] is not None
+        or (config["checkpoint_url"] is not None and not os.path.exists(config["checkpoint_path"]))
+    ):
+        _download_checkpoint(
+            config["checkpoint_url"],
+            config["checkpoint_fileid"],
+            config["checkpoint_path"],
+        )
+
+    if os.path.exists(config["checkpoint_path"]):
+        loaded_epoch = load_checkpoint(
+            config["checkpoint_path"],
+            model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+        )
+        start_epoch = loaded_epoch + 1
+        global_step = (loaded_epoch + 1) * (len(train_loader) + len(val_loader))
+        print(f"Resuming training from checkpoint {config['checkpoint_path']} at epoch {start_epoch}.")
+
+    best_val_loss = float("inf")
+    for epoch in range(start_epoch, config["num_epochs"]):
         train_loss = run_epoch(
             train_loader,
             model,
