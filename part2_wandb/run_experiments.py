@@ -57,7 +57,7 @@ EXPERIMENTS = {
             "fixed_lr",
             with_base(
                 use_noam=False,
-                fixed_lr=1e-4,
+                fixed_lr=2e-4,
                 checkpoint_path="checkpoints/fixed_lr.pt",
             ),
         ),
